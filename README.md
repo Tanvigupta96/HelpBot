@@ -16,4 +16,4 @@ In a development environment.
 
 Dialogflow:Making the bot intelligent. By making it a conversational bot.
 We use a conversational engine that can be trained to give reply to specific queries in a specific manner: using Dialogflow (developed by google) 
-You can ask for news(belong to any category and place), weather(any city), restaurant information(any city) and movies reviews from the bot. 
+You can ask for news(belong to any category and place), weather(any city), restaurant information(any city) and movies reviews from the bot. Many new featrues can be added and the bot can be trained using intents depending on entities.we can design and train the bot according to the information we need in day to day life. 
