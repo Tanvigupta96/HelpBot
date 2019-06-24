@@ -1,6 +1,7 @@
 import os
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "client-secret.json"
 import requests,json
+from geopy.geocoders import Nominatim
 import dialogflow_v2 as dialogflow
 dialogflow_session_client = dialogflow.SessionsClient()
 PROJECT_ID = "tanvigupta96-ymmdnp"
@@ -39,6 +40,36 @@ def get_weather(parameters):
 		return 'City Not Found!'
 
 
+def get_restaurants(parameters):
+	print(parameters)
+	city = parameters.get('geo-city')
+	geolocator = Nominatim(user_agent="WhatsappBot")
+	if(city == ''):
+		location = parameters.get('location')['subadmin-area']
+		loc = geolocator.geocode(location)
+		lat = loc.latitude 
+		lon = loc.longitude
+
+	else : 
+		loc = geolocator.geocode(city)
+		lat = loc.latitude 
+		lon = loc.longitude
+
+	api_key = "dca0306887f49d37fc278cbc7651e8a6"
+	headers = {'user-key' : api_key}
+	r = requests.get("https://developers.zomato.com/api/v2.1/geocode?lat=" + str(lat) + "&lon=" + str(lon), headers = headers)
+	show_details = 'Here is yout list of Restaurants!' 
+	for i in range(5) :
+		name = r.json()['nearby_restaurants'][i]['restaurant']['name']
+		url = r.json()['nearby_restaurants'][i]['restaurant']['url']
+		add = r.json()['nearby_restaurants'][i]['restaurant']['location']['address']
+		rating = r.json()['nearby_restaurants'][i]['restaurant']['user_rating']['aggregate_rating']
+		show_details += '\n*Name* : {} \n*Address* : {} \n*Ratings* : {}★ \n*Link* : {} \n\n\n'.format(name,add,rating,url)
+	return(show_details)
+	
+
+
+
 def detect_intent_from_text(text, session_id, language_code='en'):
     session = dialogflow_session_client.session_path(PROJECT_ID, session_id)
     text_input = dialogflow.types.TextInput(text=text, language_code=language_code)
@@ -63,6 +94,10 @@ def fetch_reply(msg, session_id):
 	if response.intent.display_name == 'get_weather':
 		weather = get_weather(dict(response.parameters))
 		return weather
+
+	if response.intent.display_name == 'get_restaurant':
+		restaurants = get_restaurants(dict(response.parameters))
+		return restaurants
 
 
 	else:
