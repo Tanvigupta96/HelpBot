@@ -1,3 +1,6 @@
+This is a chatBot service created for the development purpose.To join the chatBot click on the following link:
+[https://api.whatsapp.com/send?phone=141552388867&text=join%20eaten-touch](https://api.whatsapp.com/send?phone=141552388867&text=join%20eaten-touch)
+
 **Whatsapp BOT:**
 (Using python)
 On one end of a conversation we are replacing a user with a Whatsapp bot.
