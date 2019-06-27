@@ -1,7 +1,9 @@
 import os
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "client-secret.json"
 import requests,json
+import imdb
 from geopy.geocoders import Nominatim
+
 import dialogflow_v2 as dialogflow
 dialogflow_session_client = dialogflow.SessionsClient()
 PROJECT_ID = "tanvigupta96-ymmdnp"
@@ -46,12 +48,12 @@ def get_restaurants(parameters):
 	geolocator = Nominatim(user_agent="WhatsappBot")
 	if(city == ''):
 		location = parameters.get('location')['subadmin-area']
-		loc = geolocator.geocode(location)
+		loc = geolocator.geocode(location, timeout = None)
 		lat = loc.latitude 
 		lon = loc.longitude
 
 	else : 
-		loc = geolocator.geocode(city)
+		loc = geolocator.geocode(city, timeout = None)
 		lat = loc.latitude 
 		lon = loc.longitude
 
@@ -68,6 +70,23 @@ def get_restaurants(parameters):
 	return(show_details)
 	
 
+def get_reviews(parameters):
+	print(parameters)
+	ia = imdb.IMDb()
+	mov_name = parameters.get('movie_name')[0]
+	movie_search = parameters.get('movie_search')
+	s_results = ia.search_movie(mov_name)
+	details = s_results[0]
+	ia.update(details)
+	cover = details['cover url']
+	name = details['title']
+	rating = details['rating']
+	cast = ''
+	for i in range(4):
+		cast += str(details['cast'][i]) + ', '
+
+	show_details = "\n*Title: {}*\n*Cast:* {} \n*Rating: {}*★".format(name,cast,rating)
+	return show_details, cover, movie_search
 
 
 def detect_intent_from_text(text, session_id, language_code='en'):
@@ -76,6 +95,7 @@ def detect_intent_from_text(text, session_id, language_code='en'):
     query_input = dialogflow.types.QueryInput(text=text_input)
     response = dialogflow_session_client.detect_intent(session=session, query_input=query_input)
     return response.query_result
+
 
 
 
@@ -89,16 +109,20 @@ def fetch_reply(msg, session_id):
 		for row in news:
 			news_str += "\n\n{}\n\n{}\n\n".format(row['title'],row['link'])
 		print(news_str)
-		return news_str[:1100]
+		return news_str[:1100],None,None
 
 	if response.intent.display_name == 'get_weather':
 		weather = get_weather(dict(response.parameters))
-		return weather
+		return weather,None , None
 
 	if response.intent.display_name == 'get_restaurant':
 		restaurants = get_restaurants(dict(response.parameters))
-		return restaurants
+		return restaurants, None, None
 
-
+	if response.intent.display_name == 'get_reviews':
+	 	reviews, cover, movie_search = get_reviews(dict(response.parameters))
+	 	print(reviews)
+	 	return reviews, cover, movie_search
+	 	
 	else:
-		return response.fulfillment_text
+		return response.fulfillment_text, None, None
